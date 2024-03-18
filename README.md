@@ -118,7 +118,7 @@ CLAUDE_API_KEY =
 
 ![image-20240318220801230](https://cdn.jsdelivr.net/gh/Tsumugii24/Typora-images@main/images/2024%2F03%2F18%2F5c3c8a08ba78770f07c83b50a63671e6-image-20240318220801230-c4841c.png)
 
-[Dr. Yue Wu's Google Scholar Homepage]([‪Yue Wu‬ - ‪Google 学术搜索‬](https://scholar.google.com/citations?user=CTEzNI4AAAAJ&hl=zh-CN&oi=ao))
+[Dr. Yue Wu's Google Scholar Homepage](https://scholar.google.com/citations?user=CTEzNI4AAAAJ&hl=zh-CN&oi=ao)
 
 </div>
 
