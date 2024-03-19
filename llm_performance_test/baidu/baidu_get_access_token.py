@@ -19,8 +19,8 @@ def get_access_token():
 
     response = requests.request("POST", url, headers=headers, data=payload)
 
-    print(response.text)
+    return response.json().get("access_token")
 
 
 if __name__ == '__main__':
-    get_access_token()
+    print(get_access_token())

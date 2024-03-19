@@ -37,7 +37,7 @@ def get_completion_openai(prompt, model="gpt-3.5-turbo", temperature=0.1):
         temperature=temperature,  # 模型输出的温度系数，控制输出的随机程度
     )
 
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content
 
 
 if __name__ == '__main__':

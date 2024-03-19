@@ -1,5 +1,5 @@
 from baidu.baidu_api import get_completion_baidu
-# from openai.openai_api import get_completion_openai
+from myopenai.openai_api import get_completion_openai
 from sparkdesk.spark_api import get_completion_spark
 from zhipu.zhipu_api import get_completion_zhipu
 
@@ -31,12 +31,12 @@ print("system:", "你是一位经验丰富的数据分析师。")
 print("prompt:", prompt)
 print("\n")
 
-# ernie_4_8k_response = get_completion_baidu(prompt) # 欠费
-# gpt_35_turbo = get_completion_openai(prompt) # 尚未获得apikey
+# ernie_4_8k_response = get_completion_baidu(prompt)  # 欠费
+gpt_35_turbo = get_completion_openai(prompt)  # 尚未获得apikey
 spark_v35 = get_completion_spark(prompt)
 glm_4 = get_completion_zhipu(prompt)
 
 # print("百度 ERNIE-4.0-8K: ", ernie_4_8k_response + "\n")
-# print("OpenAI GPT-3.5-turbo: ", gpt_35_turbo + "\n")
+print("OpenAI GPT-3.5-turbo: ", gpt_35_turbo + "\n")
 print("SparkDesk V3.5: ", spark_v35 + "\n")
 print("ZhipuAI glm-4: ", glm_4 + "\n")

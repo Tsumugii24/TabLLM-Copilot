@@ -16,6 +16,6 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 
 output_parser = StrOutputParser()
-# print(llm-sdk.invoke("langsmith如何帮助测试?"))
+# print(llm_sdk.invoke("langsmith如何帮助测试?"))
 chain = prompt | llm | output_parser
 print(chain.invoke({"input": "帮我写一段python代码。"}))
