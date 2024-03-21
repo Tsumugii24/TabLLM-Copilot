@@ -311,6 +311,7 @@ def spark_main(appid, api_key, api_secret, spark_url, domain, question, temperat
 
 def parse_llm_api_key(model: str):
     # 从环境变量中获取API Key
+    load_dotenv(find_dotenv())
     if model == "openai":
         return os.environ["OPENAI_API_KEY"]
     elif model == "baidu":

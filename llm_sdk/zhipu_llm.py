@@ -3,7 +3,7 @@ from typing import Any, List, Mapping, Optional, Dict, Union, Tuple
 from pydantic import Field
 from zhipuai import ZhipuAI
 
-from self_llm import Self_LLM
+from llm_sdk.self_llm import Self_LLM
 import json
 import requests
 from langchain.callbacks.manager import CallbackManagerForLLMRun
