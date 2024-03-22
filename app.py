@@ -21,12 +21,12 @@ INIT_LLM = "glm-4"
 EMBEDDING_MODEL_LIST = ['openai', 'zhipu', 'm3e', 'gte']
 INIT_EMBEDDING_MODEL = "openai"
 # 关于法律问题的本地知识库和向量数据库的默认路径
-DEFAULT_DB_PATH = "../../database/laws_knowledgebases"
-DEFAULT_PERSIST_PATH = "../../database/chromadb/laws_vectordb_openai"
-AIGC_AVATAR_PATH = "logo.png"
-DATAWHALE_AVATAR_PATH = "logo.png"
-AIGC_LOGO_PATH = "logo.png"
-DATAWHALE_LOGO_PATH = "logo.png"
+DEFAULT_DB_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\laws_knowledgebase"
+DEFAULT_PERSIST_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\chromadb\laws_vertordb_openai"
+EXAMPLE_AVATAR_PATH = "doc/favicons/logo.png"
+EXTRA_AVATAR_PATH = "doc/favicons/logo.png"
+EXAMPLE_LOGO_PATH = "doc/favicons/logo.png"
+EXTRA_LOGO_PATH = "doc/favicons/logo.png"
 
 
 def get_model_by_platform(platform):
@@ -35,7 +35,7 @@ def get_model_by_platform(platform):
 
 class Model_Center():
     """
-    存储问答 Chain 的对象 
+    存储问答 Chain 的对象
 
     - chat_qa_chain_self: 以 (model, embedding) 为键存储的带历史记录的问答链。
     - qa_chain_self: 以 (model, embedding) 为键存储的不带历史记录的问答链。
@@ -52,7 +52,7 @@ class Model_Center():
         """
         调用带历史记录的问答链进行回答
         """
-        if question == None or len(question) < 1:
+        if question is None or len(question) < 1:
             return "", chat_history
         try:
             if (model, embedding) not in self.chat_qa_chain_self:
@@ -72,7 +72,7 @@ class Model_Center():
         """
         调用不带历史记录的问答链进行回答
         """
-        if question == None or len(question) < 1:
+        if question is None or len(question) < 1:
             return "", chat_history
         try:
             if (model, embedding) not in self.qa_chain_self:
@@ -152,39 +152,39 @@ model_center = Model_Center()
 block = gr.Blocks()
 with block as demo:
     with gr.Row(equal_height=True):
-        gr.Image(value=AIGC_LOGO_PATH, scale=1, min_width=10, show_label=False, show_download_button=False,
+        gr.Image(value=EXAMPLE_LOGO_PATH, scale=1, min_width=10, show_label=False, show_download_button=False,
                  container=False)
 
         with gr.Column(scale=2):
             gr.Markdown("""<h1><center>TabLLM-Copilot</center></h1>
                 <h3><center>Maintained by Tsumugii https://github.com/Tsumugii24/TabLLM-Copilot 😊</center></h3>
                 """)
-        gr.Image(value=DATAWHALE_LOGO_PATH, scale=1, min_width=10, show_label=False, show_download_button=False,
+        gr.Image(value=EXTRA_LOGO_PATH, scale=1, min_width=10, show_label=False, show_download_button=False,
                  container=False)
 
     with gr.Row():
         with gr.Column(scale=4):
             chatbot = gr.Chatbot(height=400, show_copy_button=True, show_share_button=True,
-                                 avatar_images=(AIGC_AVATAR_PATH, DATAWHALE_AVATAR_PATH))
+                                 avatar_images=(EXAMPLE_AVATAR_PATH, EXTRA_AVATAR_PATH))
             # 创建一个文本框组件，用于输入 prompt。
-            msg = gr.Textbox(label="your question", placeholder="Type your message here...",)
+            msg = gr.Textbox(label="your question", placeholder="Type your message here...", )
 
             with gr.Row():
                 # 创建提交按钮。
-                db_with_his_btn = gr.Button("Chat db with history")
-                db_wo_his_btn = gr.Button("Chat db without history")
-                llm_btn = gr.Button("Chat with llm")
+                db_with_his_btn = gr.Button("Chat DB with history")
+                db_wo_his_btn = gr.Button("Chat DB without history")
+                llm_btn = gr.Button("Chat with LLM")
             with gr.Row():
                 # 创建一个清除按钮，用于清除聊天机器人组件的内容。
                 clear = gr.ClearButton(
-                    components=[chatbot], value="Clear console")
+                    components=[chatbot], value="Clear Console")
 
         with gr.Column(scale=1):
-            file = gr.File(label='knowledge base uploading', file_count='directory',
+            file = gr.File(label='Knowledgebase Uploading', file_count='directory',
                            file_types=['.txt', '.md', '.docx', '.pdf'])  # todo .jpg .png .jpeg的添加和处理
             with gr.Row():
-                init_db = gr.Button("documents vectorization")
-            model_argument = gr.Accordion("parameter configuration", open=False)
+                init_db = gr.Button("Documents Vectorization")
+            model_argument = gr.Accordion("Parameter Configuration", open=False)
             with model_argument:
                 temperature = gr.Slider(0,
                                         1,
@@ -197,7 +197,7 @@ with block as demo:
                                   10,
                                   value=3,
                                   step=1,
-                                  label="vector db search top k",
+                                  label="vectordb search top k",
                                   interactive=True)
 
                 history_len = gr.Slider(0,
