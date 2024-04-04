@@ -2,6 +2,7 @@ import sys
 import os  # 用于操作系统相关的操作，例如读取环境变量
 import io  # 用于处理流式数据（例如文件流）
 import gradio as gr
+
 from dotenv import load_dotenv, find_dotenv
 from llm_sdk.call_llm import get_completion
 from database.create_db import create_db_info
@@ -251,7 +252,7 @@ gr.close_all()
 # todo 编码问题 gbk / 使用ignore errors之后路径解析存在问题
 demo.launch(inbrowser=True,  # 自动打开默认浏览器
             share=False,  # 项目暂不共享，其他设备目前不能访问
-            favicon_path="C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\doc\favicons\favicon.ico",  # 网页图标
+            favicon_path="C:\\Users\\YUI\\PycharmProjects\\TabLLM-Copilot\\doc\\favicons\\favicon.ico",  # 网页图标
             show_error=True,  # 在浏览器控制台中显示错误信息
             quiet=True,  # 禁止大多数打印语句
             )
