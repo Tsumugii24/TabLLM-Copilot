@@ -32,11 +32,11 @@ print("prompt:", prompt)
 print("\n")
 
 # ernie_4_8k_response = get_completion_baidu(prompt)  # 欠费
-gpt_35_turbo = get_completion_openai(prompt)  # 尚未获得apikey
-spark_v35 = get_completion_spark(prompt)
+# gpt_35_turbo = get_completion_openai(prompt)
+# spark_v35 = get_completion_spark(prompt)
 glm_4 = get_completion_zhipu(prompt)
 
 # print("百度 ERNIE-4.0-8K: ", ernie_4_8k_response + "\n")
-print("OpenAI GPT-3.5-turbo: ", gpt_35_turbo + "\n")
-print("SparkDesk V3.5: ", spark_v35 + "\n")
+# print("OpenAI GPT-3.5-turbo: ", gpt_35_turbo + "\n")
+# print("SparkDesk V3.5: ", spark_v35 + "\n")
 print("ZhipuAI glm-4: ", glm_4 + "\n")
