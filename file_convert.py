@@ -101,41 +101,37 @@ def excel_to_df(file):
 
 def img_to_df(images_folder, current_file):
     current_file_name = os.path.basename(current_file)
-    paddleocr = PaddleOCR(lang='ch', show_log=False)
+    paddleocr = PaddleOCR(lang='ch', use_gpu=False, use_angle_cls=True)
+
     images = [os.path.join(images_folder, img) for img in os.listdir(images_folder) if
               img.endswith('.png') or img.endswith('.jpg')]
+
     for file_img in images:
         if file_img is not None:
-            # 打开image文件
             img = Image.open(file_img)
             img_array = np.array(img)
             result = paddleocr.ocr(img_array)
+
             if result is not None and len(result) > 0:
                 print(f"Succeeded in transforming {file_img}")
-                save_result_as_json(result, current_file_name)  # 将结果保存为JSON文件
-            else:
-                print(f"Failed in transforming {file_img}")
+                save_result_as_json(result, file_img, current_file_name)
+
     df = get_data_from_json()
     return df
 
 
-def save_result_as_json(result, current_file_name):
+def save_result_as_json(result, file_img, current_file_name):
     current_file = current_file_name
     print(current_file)
-    result_dict = {}
+    result_dict = {f"{file_img}": {}}
     for item in result:
         for box in item:
             coordinates = box[0]
-            text = box[1][0]
-
-            # 计算坐标的平均值
             avg_x = (coordinates[0][0] + coordinates[1][0] + coordinates[2][0] + coordinates[3][0]) / 4
             avg_y = (coordinates[0][1] + coordinates[1][1] + coordinates[2][1] + coordinates[3][1]) / 4
-
-            # 使用新的坐标
-            new_coordinates = [avg_x, avg_y]
-
-            result_dict[text] = new_coordinates
+            avg_coordinates = [avg_x, avg_y]
+            text = box[1][0]
+            result_dict[f"{file_img}"][text] = avg_coordinates
 
     # 创建 "result" 文件夹（如果不存在）
     result_folder = 'result'
@@ -144,40 +140,40 @@ def save_result_as_json(result, current_file_name):
     json_file_name = f"{current_file}.json"
     json_file_path = os.path.join(result_folder, json_file_name)
 
-    # 保存更新后的键值对到 JSON 文件
-    with open(json_file_path, 'w', encoding='utf-8') as json_file:
+    with open(json_file_path, 'a', encoding='utf-8') as json_file:
         json.dump(result_dict, json_file, ensure_ascii=False)
+        json_file.write('\n')
 
 
 def get_data_from_json():
     df_list = []
-
     result_folder = 'result'
-    # 遍历 result 文件夹下的所有 JSON 文件
+    # 遍历result文件夹下的所有JSON文件
     for filename in os.listdir(result_folder):
         if filename.endswith('.json'):
             json_file_path = os.path.join(result_folder, filename)
 
-            # 从 JSON 文件中读取数据
+            # 从JSON文件中逐行读取数据
             with open(json_file_path, 'r', encoding='utf-8') as file:
-                json_data = json.load(file)
+                for line in file:
+                    json_data = json.loads(line)
 
-                # 提取文本和坐标数据
-                for text, coordinates in json_data.items():
-                    df_list.append(pd.DataFrame({
-                        "Text": [text],
-                        "x": [coordinates[0]],
-                        "y": [coordinates[1]],
-                    }))
+                    # 提取文件名和文本坐标数据
+                    file_img = list(json_data.keys())[0]
+                    text_coordinates = json_data[file_img]
+
+                    # 将数据填充到DataFrame中
+                    for text, coordinates in text_coordinates.items():
+                        avg_x, avg_y = coordinates
+                        df_list.append(pd.DataFrame({
+                            "Text": [text],
+                            "Average_X": [avg_x],
+                            "Average_Y": [avg_y]
+                        }))
 
     df = pd.concat(df_list, ignore_index=True)
     print(df)
     return df
-
-
-def clear_json_file(file_path):
-    with open('result/result.json', 'w', encoding='utf-8') as file:
-        file.write("")
 
 
 '''___________________divider___________________'''
