@@ -122,17 +122,20 @@ def img_to_df(images_folder, current_file):
 def save_result_as_json(result, current_file_name):
     current_file = current_file_name
     print(current_file)
-    result_dict = {'text_coordinates': []}
+    result_dict = {}
     for item in result:
         for box in item:
             coordinates = box[0]
             text = box[1][0]
-            result_dict['text_coordinates'].append({'coordinates': coordinates, 'text': text})
 
-    # 合并"text_coordinates"字段
-    merged_text_coordinates = []
-    for item in result_dict['text_coordinates']:
-        merged_text_coordinates.append(item)
+            # 计算坐标的平均值
+            avg_x = (coordinates[0][0] + coordinates[1][0] + coordinates[2][0] + coordinates[3][0]) / 4
+            avg_y = (coordinates[0][1] + coordinates[1][1] + coordinates[2][1] + coordinates[3][1]) / 4
+
+            # 使用新的坐标
+            new_coordinates = [avg_x, avg_y]
+
+            result_dict[text] = new_coordinates
 
     # 创建 "result" 文件夹（如果不存在）
     result_folder = 'result'
@@ -141,38 +144,30 @@ def save_result_as_json(result, current_file_name):
     json_file_name = f"{current_file}.json"
     json_file_path = os.path.join(result_folder, json_file_name)
 
-    # 将合并后的"text_coordinates"字段保存为JSON文件
-    merged_result_dict = {'text_coordinates': merged_text_coordinates}
+    # 保存更新后的键值对到 JSON 文件
     with open(json_file_path, 'w', encoding='utf-8') as json_file:
-        json.dump(merged_result_dict, json_file, ensure_ascii=False)
+        json.dump(result_dict, json_file, ensure_ascii=False)
 
 
 def get_data_from_json():
     df_list = []
 
     result_folder = 'result'
-    # 遍历result文件夹下的所有JSON文件
+    # 遍历 result 文件夹下的所有 JSON 文件
     for filename in os.listdir(result_folder):
         if filename.endswith('.json'):
             json_file_path = os.path.join(result_folder, filename)
 
-            # 从JSON文件中读取数据
+            # 从 JSON 文件中读取数据
             with open(json_file_path, 'r', encoding='utf-8') as file:
                 json_data = json.load(file)
 
-                # 提取文件名和文本坐标数据
-                text_coordinates = json_data["text_coordinates"]
-
-                # 将数据填充到DataFrame中
-                for text_coord in text_coordinates:
-                    coordinates = text_coord["coordinates"]
-                    text = text_coord["text"]
+                # 提取文本和坐标数据
+                for text, coordinates in json_data.items():
                     df_list.append(pd.DataFrame({
                         "Text": [text],
-                        "Coordinate_1": [coordinates[0][0]],
-                        "Coordinate_2": [coordinates[0][1]],
-                        "Coordinate_3": [coordinates[1][0]],
-                        "Coordinate_4": [coordinates[1][1]]
+                        "x": [coordinates[0]],
+                        "y": [coordinates[1]],
                     }))
 
     df = pd.concat(df_list, ignore_index=True)
@@ -252,9 +247,14 @@ def call_interface():
     iface = gr.Interface(file_convert, gr.File(file_count="multiple",),
                          gr.Dataframe(), title="表格转换器", live=True,)
     iface.launch()
+
+
+def cleanup():
     images_folder = 'images'
-    # 删除中间生成的图片
+    result_folder = 'result'
     delete_intermediate_files(images_folder)
+    delete_intermediate_files(result_folder)
 
 
 call_interface()
+cleanup()
