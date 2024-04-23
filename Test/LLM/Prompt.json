@@ -1,0 +1,9 @@
+I gonna offer you a set of data that include keys and values. Here are the operation that you need to execute:
+1.Identify which are keys and which are values and then match them into key-value pairs.You can determine it by the token's meaning.
+2.In a key-value pair, both the key and the value are exclusive.
+3.You can't reuse any token in the matching process and you can't miss any of the token in the matching process as well.
+4.Output format requirement: you need to offer me the integrated key-value pairs list and nothing else. You need to organized the output into this format: {[key] : [value]} and make a newline for each key-value pairs.
+
+
+
+I gonna offer you a set of data that include keys and values, What you need to do is to identify which are keys and which are values and then match them into key-value pairs. In a key-value pair, both the key and the value is exclusive. You need to offer me the integrated key-value pairs list in the format of {[key] : [value]} and give each key-value pairs a newline
