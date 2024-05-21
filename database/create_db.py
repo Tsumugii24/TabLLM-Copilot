@@ -10,9 +10,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.vectorstores import Chroma
 
+
+current_dir = os.getcwd()
+print(current_dir)
 # 首先实现基本配置
-DEFAULT_DB_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\laws_knowledgebase"
-DEFAULT_PERSIST_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\chromadb\laws_vertordb_openai"
+DEFAULT_DB_PATH = os.path.join(current_dir, "database", "laws_knowledgebase")
+DEFAULT_PERSIST_PATH = os.path.join(current_dir, "database", "chromadb", "laws_vertordb_openai")
 
 
 def get_files(dir_path):
