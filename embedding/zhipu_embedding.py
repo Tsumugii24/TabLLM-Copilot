@@ -41,7 +41,7 @@ class ZhipuAIEmbeddings(BaseModel, Embeddings):
         values["zhipuai_api_key"] = get_from_dict_or_env(
             values,
             "zhipuai_api_key",
-            "ZHIPUAI_API_KEY",
+            "ZHIPU_API_KEY",
         )
 
         try:

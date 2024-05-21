@@ -16,11 +16,11 @@ load_dotenv(find_dotenv())
 
 # 获取环境变量 OPENAI_API_KEY 并实例化 OpenAI
 # client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], base_url=os.environ['OPENAI_BASE_URL'])
-client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], base_url=os.environ['OPENAI_BASE_URL'])
+client = OpenAI(api_key=os.environ['KIMI_API_KEY'], base_url=os.environ['KIMI_BASE_URL'])
 
 
 # 一个封装 OpenAI 接口的函数，参数为 Prompt，返回对应结果
-def get_completion_openai(prompt, model="gpt-4o", temperature=0):
+def get_completion_kimi(prompt, model="moonshot", temperature=0):
     """
     prompt: 对应的提示词
     model: 调用的模型，默认为 gpt-3.5-turbo，也可以选择 gpt-3.5-turbo-16k 或 gpt-4 或 gpt-4o
@@ -49,4 +49,4 @@ def get_completion_openai(prompt, model="gpt-4o", temperature=0):
 
 if __name__ == '__main__':
     prompt = config.user_prompt
-    print(get_completion_openai(prompt))
+    print(get_completion_kimi(prompt))
