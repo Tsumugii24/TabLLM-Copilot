@@ -2,7 +2,6 @@ import gradio as gr
 import pythoncom
 import pandas as pd
 import win32com.client as win32
-import fitz
 import numpy as np
 import json
 import shutil
@@ -10,7 +9,7 @@ import os
 import zipfile
 import rarfile
 
-
+from pdf2image import convert_from_path
 from PIL import Image
 from paddleocr import PaddleOCR
 
@@ -71,15 +70,13 @@ def word_to_pdf(file):
 def pdf_to_image(file_path):
     output_folder = "images"
     if not os.path.exists(output_folder):
-        os.makedirs(output_folder)  # 创建输出文件夹
+        os.makedirs(output_folder)
     try:
-        doc = fitz.open(file_path)
-        for page_num in range(doc.page_count):
-            page = doc.load_page(page_num)
-            pix = page.get_pixmap()
-            image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            image.save(os.path.join(output_folder, f"page_{page_num}.png"))  # 保存图像
-        doc.close()
+        images = convert_from_path(file_path)
+        for i, image in enumerate(images):
+            image_path = os.path.join(output_folder, f"page_{i}.png")
+            image.save(image_path, "PNG")
+        print("PDF转换为图像成功！")
     except Exception as e:
         print("无法转换PDF为图像:", str(e))
 
@@ -127,11 +124,8 @@ def save_result_as_json(result, file_img, current_file_name):
     for item in result:
         for box in item:
             coordinates = box[0]
-            avg_x = (coordinates[0][0] + coordinates[1][0] + coordinates[2][0] + coordinates[3][0]) / 4
-            avg_y = (coordinates[0][1] + coordinates[1][1] + coordinates[2][1] + coordinates[3][1]) / 4
-            avg_coordinates = [avg_x, avg_y]
             text = box[1][0]
-            result_dict[f"{file_img}"][text] = avg_coordinates
+            result_dict[f"{file_img}"][text] = coordinates
 
     # 创建 "result" 文件夹（如果不存在）
     result_folder = 'result'
@@ -164,11 +158,9 @@ def get_data_from_json():
 
                     # 将数据填充到DataFrame中
                     for text, coordinates in text_coordinates.items():
-                        avg_x, avg_y = coordinates
                         df_list.append(pd.DataFrame({
                             "Text": [text],
-                            "Average_X": [avg_x],
-                            "Average_Y": [avg_y]
+                            "Coordinates": [coordinates]
                         }))
 
     df = pd.concat(df_list, ignore_index=True)
