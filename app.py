@@ -1,6 +1,6 @@
 import sys
-import os  # 用于操作系统相关的操作，例如读取环境变量
-import io  # 用于处理流式数据（例如文件流）
+import os  # Used for operating system-related operations, such as reading environment variables
+import io  # Used for handling stream data (e.g., file streams)
 import gradio as gr
 
 from dotenv import load_dotenv, find_dotenv
@@ -8,6 +8,9 @@ from llm_sdk.call_llm import get_completion
 from database.create_db import create_db_info
 from qa_chain.chat_qa_chain_self import Chat_QA_Chain_Self
 from qa_chain.qa_chain_self import QA_Chain_Self
+
+current_dir = os.getcwd()
+print(current_dir)
 
 load_dotenv(find_dotenv())
 LLM_MODEL_DICT = {
@@ -21,13 +24,13 @@ LLM_MODEL_LIST = sum(list(LLM_MODEL_DICT.values()), [])
 INIT_LLM = "glm-4"
 EMBEDDING_MODEL_LIST = ['openai', 'zhipu', 'm3e', 'gte']
 INIT_EMBEDDING_MODEL = "openai"
-# 关于法律问题的本地知识库和向量数据库的默认路径
-DEFAULT_DB_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\laws_knowledgebase"
-DEFAULT_PERSIST_PATH = "C:\\Users\YUI\PycharmProjects\TabLLM-Copilot\database\chromadb\laws_vertordb_openai"
-EXAMPLE_AVATAR_PATH = "doc/favicons/logo.png"
-EXTRA_AVATAR_PATH = "doc/favicons/logo.png"
-EXAMPLE_LOGO_PATH = "doc/favicons/logo.png"
-EXTRA_LOGO_PATH = "doc/favicons/logo.png"
+# Default paths for the local knowledge base and vector database for legal questions
+DEFAULT_DB_PATH = os.path.join(current_dir, "database", "laws_knowledgebase")
+DEFAULT_PERSIST_PATH = os.path.join(current_dir, "database", "chromadb", "laws_vertordb_openai")
+EXAMPLE_AVATAR_PATH = os.path.join(current_dir, "doc", "favicons", "logo.png")
+EXTRA_AVATAR_PATH = os.path.join(current_dir, "doc", "favicons", "logo.png")
+EXAMPLE_LOGO_PATH = os.path.join(current_dir, "doc", "favicons", "logo.png")
+EXTRA_LOGO_PATH = os.path.join(current_dir, "doc", "favicons", "logo.png")
 
 
 def get_model_by_platform(platform):
@@ -182,7 +185,7 @@ with block as demo:
 
         with gr.Column(scale=1):
             file = gr.File(label='Knowledgebase Uploading', file_count='directory',
-                           file_types=['.txt', '.md', '.docx', '.pdf'])  # todo .jpg .png .jpeg的添加和处理
+                           file_types=['.txt', '.md', '.docx', '.pdf', '.json'])  # todo .jpg .png .jpeg的添加和处理
             with gr.Row():
                 init_db = gr.Button("Documents Vectorization")
             model_argument = gr.Accordion("Parameter Configuration", open=False)
@@ -252,7 +255,8 @@ gr.close_all()
 # todo 编码问题 gbk / 使用ignore errors之后路径解析存在问题
 demo.launch(inbrowser=True,  # 自动打开默认浏览器
             share=False,  # 项目暂不共享，其他设备目前不能访问
-            favicon_path="C:\\Users\\YUI\\PycharmProjects\\TabLLM-Copilot\\doc\\favicons\\favicon.ico",  # 网页图标
+            favicon_path=os.path.join(current_dir, "doc", "favicons", "favicon.ico"),
+# 网页图标
             show_error=True,  # 在浏览器控制台中显示错误信息
             quiet=True,  # 禁止大多数打印语句
             )

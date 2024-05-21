@@ -1,6 +1,5 @@
 import gradio as gr
 import pythoncom
-import pandas as pd
 import win32com.client as win32
 import numpy as np
 import json
@@ -12,6 +11,8 @@ import rarfile
 from pdf2image import convert_from_path
 from PIL import Image
 from paddleocr import PaddleOCR
+
+current_dir = os.getcwd()
 
 
 def extract_zip(zip_file_path):
@@ -58,45 +59,33 @@ def word_to_pdf(file):
     doc = word.Documents.Open(word_abs_path)
     # 指定PDF文件的保存路径和文件名
     pdf_path = os.path.join(script_dir, "output.pdf")
-    # 保存为PDF
     doc.SaveAs(pdf_path, FileFormat=17)  # FileFormat=17 表示PDF格式
-    # 关闭Word文档
     doc.Close(False)
-    # 退出Word应用
     word.Quit()
     return pdf_path
 
 
-def pdf_to_image(file_path):
+def pdf_to_image(file):
     output_folder = "images"
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     try:
-        images = convert_from_path(file_path)
+        images = convert_from_path(file)
+        images_path = []
         for i, image in enumerate(images):
-            image_path = os.path.join(output_folder, f"page_{i}.png")
+            image_path = os.path.join(output_folder, f"{file}_page_{i}.png")
+            images_path.append(image_path)
             image.save(image_path, "PNG")
         print("PDF转换为图像成功！")
     except Exception as e:
         print("无法转换PDF为图像:", str(e))
-
-
-def excel_to_df(file):
-
-    # 指定Excel文件的路径
-    excel_path = file
-
-    # 使用pandas的read_excel函数读取Excel文件
-    df = pd.read_excel(excel_path)
-    print(df)
-    # 显示DataFrame的内容
-    return df
+    return images_path
 
 
 ''' ______________functions of img to dataframe______________'''
 
 
-def img_to_df(images_folder, current_file):
+def img_to_json(images_folder, current_file):
     current_file_name = os.path.basename(current_file)
     paddleocr = PaddleOCR(lang='ch', use_gpu=False, use_angle_cls=True)
 
@@ -112,9 +101,6 @@ def img_to_df(images_folder, current_file):
             if result is not None and len(result) > 0:
                 print(f"Succeeded in transforming {file_img}")
                 save_result_as_json(result, file_img, current_file_name)
-
-    df = get_data_from_json()
-    return df
 
 
 def save_result_as_json(result, file_img, current_file_name):
@@ -138,34 +124,7 @@ def save_result_as_json(result, file_img, current_file_name):
         json.dump(result_dict, json_file, ensure_ascii=False)
         json_file.write('\n')
 
-
-def get_data_from_json():
-    df_list = []
-    result_folder = 'result'
-    # 遍历result文件夹下的所有JSON文件
-    for filename in os.listdir(result_folder):
-        if filename.endswith('.json'):
-            json_file_path = os.path.join(result_folder, filename)
-
-            # 从JSON文件中逐行读取数据
-            with open(json_file_path, 'r', encoding='utf-8') as file:
-                for line in file:
-                    json_data = json.loads(line)
-
-                    # 提取文件名和文本坐标数据
-                    file_img = list(json_data.keys())[0]
-                    text_coordinates = json_data[file_img]
-
-                    # 将数据填充到DataFrame中
-                    for text, coordinates in text_coordinates.items():
-                        df_list.append(pd.DataFrame({
-                            "Text": [text],
-                            "Coordinates": [coordinates]
-                        }))
-
-    df = pd.concat(df_list, ignore_index=True)
-    print(df)
-    return df
+    result_dict.clear()
 
 
 '''___________________divider___________________'''
@@ -184,18 +143,10 @@ def delete_intermediate_files(folder):
     os.rmdir(folder)
 
 
-def file_convert(files, final_df=None):
+def file_convert(files):
     pythoncom.CoInitialize()
     images_folder = 'images'
     os.makedirs(images_folder, exist_ok=True)
-    if final_df is None:
-        final_df = pd.DataFrame()
-
-    result_dfs = []
-
-    if not files:  # 处理清除操作
-        final_df = pd.DataFrame()
-        return final_df
 
     for file in files:
         file_ex = file_extension(file)
@@ -205,35 +156,26 @@ def file_convert(files, final_df=None):
                 pdf_to_image(file_pdf)
                 os.remove(file_pdf)
             elif file_ex == 'pdf':
-                pdf_to_image(file)
-
-            df = img_to_df(images_folder, file)
-            result_dfs.append(df)
-            final_df = pd.concat(result_dfs)
-
-        elif file_ex == 'xlsx':
-            file_df = excel_to_df(file)
-            result_dfs.append(file_df)
-            final_df = pd.concat(result_dfs)
+                imgs = pdf_to_image(file)
+                file_convert(imgs)
 
         elif file_ex == 'zip' or file_ex == 'rar':
             extracted_files = extract_zip(file)
-            final_df = file_convert(extracted_files, final_df)  # 递归调用
+            file_convert(extracted_files)
+
+        elif file_ex == 'xlsx':
+            continue
 
         elif file_ex == 'jpg' or file_ex == 'png':
             new_file_path = os.path.join(images_folder, os.path.basename(file))
             shutil.move(file, new_file_path)
-            df = img_to_df(images_folder, file)
-            result_dfs.append(df)
-            final_df = pd.concat(result_dfs)
+            img_to_json(images_folder, file)
 
-    return final_df
+    return os.path.join(current_dir, 'result')  # 返回json文件存放路径
 
 
 def call_interface():
-
-    iface = gr.Interface(file_convert, gr.File(file_count="multiple",),
-                         gr.Dataframe(), title="表格转换器", live=True,)
+    iface = gr.Interface(file_convert, gr.File(file_count="multiple",), gr.Textbox(), title="表格转换器", live=True,)
     iface.launch()
 
 
