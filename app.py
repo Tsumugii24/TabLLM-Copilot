@@ -254,7 +254,8 @@ gr.close_all()
 # todo 编码问题 gbk / 使用ignore errors之后路径解析存在问题
 demo.launch(inbrowser=True,  # 自动打开默认浏览器
             share=False,  # 项目暂不共享，其他设备目前不能访问
-            favicon_path="C:\\Users\\YUI\\PycharmProjects\\TabLLM-Copilot\\doc\\favicons\\favicon.ico",  # 网页图标
+            favicon_path=os.path.join(current_dir, "doc", "favicons", "favicon.ico"),
+# 网页图标
             show_error=True,  # 在浏览器控制台中显示错误信息
             quiet=True,  # 禁止大多数打印语句
             )
