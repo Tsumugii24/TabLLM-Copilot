@@ -184,7 +184,8 @@ with block as demo:
                     components=[chatbot], value="Clear Console")
 
         with gr.Column(scale=1):
-            file = gr.File(label='Knowledgebase Uploading', file_count='multiple',)  # todo .jpg .png .jpeg的添加和处理
+            file = gr.File(label='Knowledgebase Uploading', file_count='directory',
+                           file_types=['.txt', '.md', '.docx', '.pdf', '.json'])  # todo .jpg .png .jpeg的添加和处理
             with gr.Row():
                 init_db = gr.Button("Documents Vectorization")
             model_argument = gr.Accordion("Parameter Configuration", open=False)
