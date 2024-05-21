@@ -99,66 +99,80 @@ def excel_to_df(file):
 ''' ______________functions of img to dataframe______________'''
 
 
-def img_to_df(images_folder):
-    paddleocr = PaddleOCR(lang='ch', show_log=False)
+def img_to_df(images_folder, current_file):
+    current_file_name = os.path.basename(current_file)
+    paddleocr = PaddleOCR(lang='ch', use_gpu=False, use_angle_cls=True)
+
     images = [os.path.join(images_folder, img) for img in os.listdir(images_folder) if
               img.endswith('.png') or img.endswith('.jpg')]
+
     for file_img in images:
         if file_img is not None:
-            # 打开image文件
             img = Image.open(file_img)
             img_array = np.array(img)
             result = paddleocr.ocr(img_array)
+
             if result is not None and len(result) > 0:
                 print(f"Succeeded in transforming {file_img}")
-                save_result_as_json(result, file_img)  # 将结果保存为JSON文件
-            else:
-                print(f"Failed in transforming {file_img}")
+                save_result_as_json(result, file_img, current_file_name)
+
     df = get_data_from_json()
     return df
 
 
-def save_result_as_json(result, file_img):
-    result_dict = {'file_img': file_img, 'text_coordinates': []}
+def save_result_as_json(result, file_img, current_file_name):
+    current_file = current_file_name
+    print(current_file)
+    result_dict = {f"{file_img}": {}}
     for item in result:
         for box in item:
             coordinates = box[0]
+            avg_x = (coordinates[0][0] + coordinates[1][0] + coordinates[2][0] + coordinates[3][0]) / 4
+            avg_y = (coordinates[0][1] + coordinates[1][1] + coordinates[2][1] + coordinates[3][1]) / 4
+            avg_coordinates = [avg_x, avg_y]
             text = box[1][0]
-            result_dict['text_coordinates'].append({'coordinates': coordinates, 'text': text})
-    json_file_name = 'result.json'
-    with open(json_file_name, 'a', encoding='utf-8') as json_file:
+            result_dict[f"{file_img}"][text] = avg_coordinates
+
+    # 创建 "result" 文件夹（如果不存在）
+    result_folder = 'result'
+    if not os.path.exists(result_folder):
+        os.makedirs(result_folder)
+    json_file_name = f"{current_file}.json"
+    json_file_path = os.path.join(result_folder, json_file_name)
+
+    with open(json_file_path, 'a', encoding='utf-8') as json_file:
         json.dump(result_dict, json_file, ensure_ascii=False)
         json_file.write('\n')
 
 
 def get_data_from_json():
     df_list = []
+    result_folder = 'result'
+    # 遍历result文件夹下的所有JSON文件
+    for filename in os.listdir(result_folder):
+        if filename.endswith('.json'):
+            json_file_path = os.path.join(result_folder, filename)
 
-    # 从result.json文件中逐行读取JSON数据
-    with open('result.json', 'r', encoding='utf-8') as file:
-        for line in file:
-            json_data = json.loads(line)
+            # 从JSON文件中逐行读取数据
+            with open(json_file_path, 'r', encoding='utf-8') as file:
+                for line in file:
+                    json_data = json.loads(line)
 
-            # 提取文件名和文本坐标数据
-            file_img = json_data["file_img"]
-            text_coordinates = json_data["text_coordinates"]
+                    # 提取文件名和文本坐标数据
+                    file_img = list(json_data.keys())[0]
+                    text_coordinates = json_data[file_img]
 
-            # 将数据填充到DataFrame中
-            for text_coord in text_coordinates:
-                coordinates = text_coord["coordinates"]
-                text = text_coord["text"]
-                df_list.append(pd.DataFrame({
-                    "Text": [text],
-                    "Coordinate_1": [coordinates[0][0]],
-                    "Coordinate_2": [coordinates[0][1]],
-                    "Coordinate_3": [coordinates[1][0]],
-                    "Coordinate_4": [coordinates[1][1]]
-                }))
+                    # 将数据填充到DataFrame中
+                    for text, coordinates in text_coordinates.items():
+                        avg_x, avg_y = coordinates
+                        df_list.append(pd.DataFrame({
+                            "Text": [text],
+                            "Average_X": [avg_x],
+                            "Average_Y": [avg_y]
+                        }))
 
     df = pd.concat(df_list, ignore_index=True)
     print(df)
-    with open('result.json', 'w', encoding='utf-8') as file:
-        file.write("")
     return df
 
 
@@ -201,7 +215,7 @@ def file_convert(files, final_df=None):
             elif file_ex == 'pdf':
                 pdf_to_image(file)
 
-            df = img_to_df(images_folder)
+            df = img_to_df(images_folder, file)
             result_dfs.append(df)
             final_df = pd.concat(result_dfs)
 
@@ -217,7 +231,7 @@ def file_convert(files, final_df=None):
         elif file_ex == 'jpg' or file_ex == 'png':
             new_file_path = os.path.join(images_folder, os.path.basename(file))
             shutil.move(file, new_file_path)
-            df = img_to_df(images_folder)
+            df = img_to_df(images_folder, file)
             result_dfs.append(df)
             final_df = pd.concat(result_dfs)
 
@@ -229,9 +243,14 @@ def call_interface():
     iface = gr.Interface(file_convert, gr.File(file_count="multiple",),
                          gr.Dataframe(), title="表格转换器", live=True,)
     iface.launch()
+
+
+def cleanup():
     images_folder = 'images'
-    # 删除中间生成的图片
+    result_folder = 'result'
     delete_intermediate_files(images_folder)
+    delete_intermediate_files(result_folder)
 
 
 call_interface()
+cleanup()
